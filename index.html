@@ -146,7 +146,7 @@
         }
         
         .table-responsive {
-            overflow-x: hidden; /* Oculta el scroll horizontal */
+            overflow-x: hidden;
             width: 100%;
         }
         
@@ -185,9 +185,9 @@
         /* Media Query para hacer la tabla más compacta en móviles */
         @media (max-width: 600px) {
             th, td {
-                padding: 8px 6px;
-                font-size: 0.8em; /* Reduce el tamaño de la fuente */
-                white-space: normal; /* Permite que el texto se ajuste y la celda crezca en vertical */
+                padding: 6px 4px; /* Reducción de padding */
+                font-size: 0.7em; /* Reducción de tamaño de fuente */
+                white-space: normal;
             }
         }
     </style>
@@ -218,7 +218,9 @@
                         <th>Incidencias</th>
                     </tr>
                 </thead>
-                <tbody id="dataTable"></tbody>
+                <tbody id="dataTable">
+                    <tr><td colspan="4" style="text-align:center;">Introduce un término de búsqueda.</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
