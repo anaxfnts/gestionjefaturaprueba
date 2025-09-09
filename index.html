@@ -30,7 +30,7 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            overflow-x: hidden; /* Evita el scroll horizontal en todo el body */
+            overflow-x: hidden;
         }
 
         h1 {
@@ -38,15 +38,15 @@
             margin-bottom: 25px;
             text-align: center;
         }
-        
-        /* Estilos específicos para el contenedor de login */
+
+        /* Contenedor del login: se mantiene compacto */
         .login-container {
             background-color: var(--container-bg);
             padding: 30px 40px;
             border-radius: 12px;
             box-shadow: var(--shadow);
             width: 100%;
-            max-width: 400px; /* Tamaño del login ajustado */
+            max-width: 400px;
             text-align: center;
             display: none;
             flex-direction: column;
@@ -58,7 +58,7 @@
             display: flex;
         }
 
-        /* Estilos para el contenedor de la tabla de datos */
+        /* Contenedor de la tabla: más amplio */
         .data-container {
             background-color: var(--container-bg);
             padding: 30px 40px;
@@ -76,7 +76,7 @@
         .data-container.active {
             display: flex;
         }
-        
+
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 12px;
@@ -110,7 +110,7 @@
             background-color: #4a5664;
             transform: translateY(-2px);
         }
-        
+
         #search-box {
             display: flex;
             gap: 10px;
@@ -129,7 +129,7 @@
             border-radius: 25px;
             margin-top: 0;
         }
-        
+
         @media (max-width: 600px) {
             #search-box {
                 flex-direction: column;
@@ -146,13 +146,12 @@
         }
         
         .table-responsive {
-            overflow-x: auto; /* Permite el scroll horizontal */
+            overflow-x: hidden; /* Oculta el scroll horizontal */
             width: 100%;
         }
-
+        
         table {
             width: 100%;
-            min-width: 500px; /* Asegura que la tabla no sea demasiado estrecha */
             border-collapse: collapse;
             margin-top: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -165,7 +164,6 @@
             border: 1px solid black;
             padding: 12px;
             text-align: left;
-            white-space: nowrap; /* Evita que el texto se rompa */
         }
 
         th {
@@ -182,6 +180,15 @@
             color: #e74c3c;
             margin-top: 15px;
             font-weight: bold;
+        }
+        
+        /* Media Query para hacer la tabla más compacta en móviles */
+        @media (max-width: 600px) {
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.8em; /* Reduce el tamaño de la fuente */
+                white-space: normal; /* Permite que el texto se ajuste y la celda crezca en vertical */
+            }
         }
     </style>
 </head>
