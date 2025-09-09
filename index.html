@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión partes Jefatura Jimena Fra.</title>
-    <!-- Incluir los SDKs de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <!-- Aquí está la URL de tu ícono de GitHub -->
     <link rel="icon" href="https://raw.githubusercontent.com/anaxfnts/Icono/refs/heads/main/police-badge_3497778.ico" type="image/x-icon">
     <style>
         :root {
@@ -32,6 +30,7 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            overflow-x: hidden; /* Evita el scroll horizontal en todo el body */
         }
 
         h1 {
@@ -39,27 +38,45 @@
             margin-bottom: 25px;
             text-align: center;
         }
-
-        .container {
+        
+        /* Estilos específicos para el contenedor de login */
+        .login-container {
             background-color: var(--container-bg);
             padding: 30px 40px;
             border-radius: 12px;
             box-shadow: var(--shadow);
             width: 100%;
-            max-width: 650px;
+            max-width: 400px; /* Tamaño del login ajustado */
             text-align: center;
-        }
-
-        .login-container, .data-container {
             display: none;
             flex-direction: column;
             align-items: center;
+            box-sizing: border-box;
         }
 
-        .login-container.active, .data-container.active {
+        .login-container.active {
             display: flex;
         }
 
+        /* Estilos para el contenedor de la tabla de datos */
+        .data-container {
+            background-color: var(--container-bg);
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        
+        .data-container.active {
+            display: flex;
+        }
+        
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 12px;
@@ -93,11 +110,7 @@
             background-color: #4a5664;
             transform: translateY(-2px);
         }
-
-        .data-container {
-            max-width: 900px;
-        }
-
+        
         #search-box {
             display: flex;
             gap: 10px;
@@ -131,20 +144,28 @@
                 border-radius: 25px;
             }
         }
+        
+        .table-responsive {
+            overflow-x: auto; /* Permite el scroll horizontal */
+            width: 100%;
+        }
 
         table {
             width: 100%;
+            min-width: 500px; /* Asegura que la tabla no sea demasiado estrecha */
             border-collapse: collapse;
             margin-top: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             border-radius: 8px;
             overflow: hidden;
+            border: 1px solid black;
         }
 
         th, td {
             border: 1px solid black;
             padding: 12px;
             text-align: left;
+            white-space: nowrap; /* Evita que el texto se rompa */
         }
 
         th {
@@ -156,7 +177,7 @@
         tr:nth-child(even) {
             background-color: #f9fbfd;
         }
-
+        
         .alert {
             color: #e74c3c;
             margin-top: 15px;
@@ -167,8 +188,7 @@
 <body>
     <h1>Gestión partes Jefatura Jimena Fra.</h1>
 
-    <!-- Contenedor de Login -->
-    <div class="container login-container active" id="loginContainer">
+    <div class="login-container active" id="loginContainer">
         <h2>Inicio sesión</h2>
         <input type="text" id="idInput" placeholder="Correo Electrónico">
         <input type="password" id="passwordInput" placeholder="Contraseña">
@@ -176,23 +196,24 @@
         <div id="loginAlert" class="alert"></div>
     </div>
 
-    <!-- Contenedor de la Vista Principal -->
-    <div class="container data-container" id="dataContainer">
+    <div class="data-container" id="dataContainer">
         <div id="search-box">
             <input type="text" id="searchInput" placeholder="Buscar por fecha, incidencia, policías o teléfono...">
             <button id="searchBtn">Buscar</button>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Teléfono</th>
-                    <th>Policías</th>
-                    <th>Incidencias</th>
-                </tr>
-            </thead>
-            <tbody id="dataTable"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Teléfono</th>
+                        <th>Policías</th>
+                        <th>Incidencias</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -258,7 +279,7 @@
             dataTable.innerHTML = '';
 
             if (searchTerm === '') {
-                dataTable.innerHTML = '<tr><td colspan="4">Introduce un término de búsqueda.</td></tr>';
+                dataTable.innerHTML = '<tr><td colspan="4" style="text-align:center;">Introduce un término de búsqueda.</td></tr>';
                 return;
             }
 
@@ -303,11 +324,11 @@
                         `;
                     });
                 } else {
-                    dataTable.innerHTML = '<tr><td colspan="4">No se encontraron resultados.</td></tr>';
+                    dataTable.innerHTML = '<tr><td colspan="4" style="text-align:center;">No se encontraron resultados.</td></tr>';
                 }
             } catch (error) {
                 console.error("Error al buscar documentos: ", error);
-                dataTable.innerHTML = '<tr><td colspan="4">Error al cargar los datos.</td></tr>';
+                dataTable.innerHTML = '<tr><td colspan="4" style="text-align:center;">Error al cargar los datos.</td></tr>';
             }
         });
     </script>
