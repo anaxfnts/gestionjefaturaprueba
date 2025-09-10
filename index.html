@@ -269,10 +269,56 @@
             margin-top: 10px;
         }
         
-        #processMessage {
-            margin-bottom: 15px;
+        .gemini-container {
+            width: 100%;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        #geminiResponseContainer {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            text-align: left;
+            min-height: 50px;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        
+        #loadingSpinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #000;
+            animation: spin 1s ease infinite;
+            margin: 20px auto;
+        }
+
+        #gemini-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        #gemini-text {
+            font-size: 2rem;
             font-weight: bold;
-            text-align: center;
+            color: black;
+            margin-right: 15px;
+        }
+
+        #gemini-icon {
+            width: 2rem;
+            height: 2rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
     </style>
@@ -316,13 +362,28 @@
                 </tbody>
             </table>
         </div>
+        
+        <div class="gemini-container">
+            <div id="gemini-brand">
+                <p id="gemini-text">Búsqueda con Gemini</p>
+                <img id="gemini-icon" src="https://raw.githubusercontent.com/anaxfnts/Icono/refs/heads/main/gemini.ico" alt="Gemini Logo">
+            </div>
+            <div id="search-box">
+                <input type="text" id="geminiSearchInput" placeholder="Haz una pregunta sobre los partes">
+                <button id="geminiSearchBtn">Buscar con Gemini</button>
+            </div>
+            <div id="geminiResponseContainer">
+                La respuesta de Gemini aparecerá aquí.
+            </div>
+        </div>
+        
     </div>
     
     <!-- Modal para añadir nuevos registros -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2>Añadir nuevo parte</h2>
+            <h2>Añadir nuevo registro</h2>
             <form id="addForm">
                 <input type="date" id="newDateInput" placeholder="Fecha" required>
                 <input type="time" id="newTimeInput" placeholder="Hora" required>
@@ -366,6 +427,9 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Clave de API de Gemini
+        const apiKey = "AIzaSyByjE9035-hD0KyizFa4x_8knCKs7HKfJM"; 
+
         const loginContainer = document.getElementById('loginContainer');
         const dataContainer = document.getElementById('dataContainer');
         const idInput = document.getElementById('idInput');
@@ -402,8 +466,13 @@
         const fileStatusMessage = document.getElementById('fileStatusMessage');
         const uploadBtn = document.getElementById('uploadBtn');
         
+        // Nuevos elementos para la búsqueda con Gemini
+        const geminiSearchInput = document.getElementById('geminiSearchInput');
+        const geminiSearchBtn = document.getElementById('geminiSearchBtn');
+        const geminiResponseContainer = document.getElementById('geminiResponseContainer');
+        
         // Inicializar el estado del modal de procesar partes
-        fileStatusMessage.textContent = 'Selecciona un archivo por favor.';
+        fileStatusMessage.textContent = 'selecciona un archivo por favor';
         uploadBtn.disabled = true;
 
         async function fetchTotalDocumentCount() {
@@ -609,6 +678,70 @@
                 statusMessage.textContent = 'Error al guardar el registro. Inténtalo de nuevo.';
             }
         });
+        
+        // --- Lógica para la búsqueda con Gemini ---
+        geminiSearchBtn.addEventListener('click', async () => {
+            const userQuery = geminiSearchInput.value.trim();
+            if (!userQuery) {
+                geminiResponseContainer.textContent = "Por favor, introduce una pregunta para Gemini.";
+                return;
+            }
+
+            // Muestra un indicador de carga
+            geminiResponseContainer.innerHTML = '<div id="loadingSpinner"></div>';
+            
+            try {
+                // Obtener todos los datos de Firestore
+                const snapshot = await db.collection('DatosGenerales').get();
+                const data = [];
+                snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    const date = docData.Fecha ? docData.Fecha.toDate().toLocaleString() : 'Fecha desconocida';
+                    data.push({
+                        fecha: date,
+                        telefono: docData.Telefono || 'Sin teléfono',
+                        policias: docData.Policias || 'Sin policías',
+                        incidencia: docData.Incidencia || 'Sin incidencia'
+                    });
+                });
+                
+                // Construir el prompt para Gemini
+                const prompt = `Actúa como un analista de datos experto en la base de datos de Jefatura.
+                Analiza el siguiente conjunto de datos de partes policiales:
+                ${JSON.stringify(data, null, 2)}
+                
+                Basado en esta información, responde a la siguiente pregunta:
+                ${userQuery}`;
+                
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    tools: [{ "google_search": {} }],
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error en la API de Gemini: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo generar una respuesta.";
+                
+                // Mostrar la respuesta
+                geminiResponseContainer.textContent = text;
+                
+            } catch (error) {
+                console.error("Error al llamar a la API de Gemini: ", error);
+                geminiResponseContainer.textContent = `Error: ${error.message}`;
+            }
+        });
+        
     </script>
 </body>
 </html>
