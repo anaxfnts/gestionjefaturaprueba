@@ -164,10 +164,15 @@
                 border-radius: 8px;
                 flex: none; /* Desactiva el crecimiento para que ocupen todo el ancho */
             }
-            #searchBtn, #addBtn, #processBtn {
+            #searchBtn, #processBtn {
                 width: 100%;
                 flex-basis: auto;
                 border-radius: 25px;
+            }
+            #addBtn {
+                width: 60px; /* Tamaño fijo para el botón */
+                align-self: center; /* Centra el botón en el contenedor flex */
+                margin-left: 0; /* Anula el margen de auto */
             }
         }
         
@@ -184,13 +189,21 @@
             overflow: hidden;
             border: 1px solid black;
             font-size: 12px; /* Tamaño de fuente más pequeño para la tabla */
+            table-layout: fixed;
         }
 
         th, td {
             border: 1px solid black;
             padding: 8px; /* Reducción de padding para que ocupe menos espacio */
             text-align: left;
+            word-wrap: break-word; /* Evita que el texto de la incidencia se desborde */
         }
+        
+        td:nth-child(1) { width: 25%; } /* Fecha */
+        td:nth-child(2) { width: 15%; } /* Teléfono */
+        td:nth-child(3) { width: 20%; } /* Policías */
+        td:nth-child(4) { width: 40%; } /* Incidencias */
+
 
         th {
             background-color: black;
