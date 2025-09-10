@@ -139,6 +139,13 @@
             border-radius: 50%;
             margin-left: auto; /* Mueve el botón al lado derecho */
         }
+        
+        #docCount {
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
 
         @media (max-width: 600px) {
             #search-box {
@@ -261,13 +268,14 @@
 
     <div class="login-container active" id="loginContainer">
         <h2>Inicio sesión</h2>
-        <input type="text" id="idInput" placeholder="Correo Electrónico">
+        <input type="text" id="idInput" placeholder="Correo electrónico">
         <input type="password" id="passwordInput" placeholder="Contraseña">
         <button id="loginBtn">Entrar</button>
         <div id="loginAlert" class="alert"></div>
     </div>
 
     <div class="data-container" id="dataContainer">
+        <p id="docCount">Cargando recuento...</p>
         <div id="search-box">
             <!-- Nuevos campos de búsqueda para los filtros -->
             <input type="text" id="searchInput" placeholder="Buscar por incidencia o teléfono...">
@@ -341,6 +349,7 @@
         const searchBtn = document.getElementById('searchBtn');
         const addBtn = document.getElementById('addBtn');
         const dataTable = document.getElementById('dataTable');
+        const docCount = document.getElementById('docCount');
         
         // Elementos del modal
         const addModal = document.getElementById('addModal');
@@ -352,10 +361,22 @@
         const newPoliceInput = document.getElementById('newPoliceInput');
         const newIncidenceInput = document.getElementById('newIncidenceInput');
         const statusMessage = document.getElementById('statusMessage');
+        
+        async function fetchTotalDocumentCount() {
+            try {
+                const snapshot = await db.collection('DatosGenerales').get();
+                const totalCount = snapshot.size;
+                docCount.textContent = `Hay ${totalCount} partes en total.`;
+            } catch (error) {
+                console.error("Error al obtener el recuento de documentos: ", error);
+                docCount.textContent = "Error al obtener el recuento.";
+            }
+        }
 
         function showDataView() {
             loginContainer.classList.remove('active');
             dataContainer.classList.add('active');
+            fetchTotalDocumentCount();
         }
 
         loginBtn.addEventListener('click', async () => {
@@ -495,6 +516,7 @@
                 statusMessage.style.color = 'green';
                 statusMessage.textContent = '¡Registro guardado con éxito!';
                 addForm.reset(); // Limpiar el formulario
+                fetchTotalDocumentCount(); // Actualizar el recuento
                 
             } catch (error) {
                 console.error("Error al guardar el documento: ", error);
