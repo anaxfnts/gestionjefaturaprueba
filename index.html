@@ -172,7 +172,6 @@
         }
         
         .table-responsive {
-            overflow-x: hidden;
             width: 100%;
         }
         
@@ -184,11 +183,12 @@
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid black;
+            font-size: 12px; /* Tamaño de fuente más pequeño para la tabla */
         }
 
         th, td {
             border: 1px solid black;
-            padding: 12px;
+            padding: 8px; /* Reducción de padding para que ocupe menos espacio */
             text-align: left;
         }
 
@@ -284,8 +284,8 @@
             border-radius: 8px;
             text-align: left;
             min-height: 50px;
-            white-space: pre-wrap;
-            font-size: 14px;
+            white-space: normal; /* Ahora el texto se ajusta a la pantalla */
+            font-size: 14px; /* Tamaño de fuente más pequeño para el texto */
         }
         
         #loadingSpinner {
