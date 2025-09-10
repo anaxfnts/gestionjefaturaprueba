@@ -130,7 +130,7 @@
             border-radius: 25px;
             margin-top: 0;
         }
-
+        
         #processBtn {
             flex-basis: 150px;
             padding: 10px 18px;
@@ -390,7 +390,7 @@
                 <input type="text" id="newPhoneInput" placeholder="Teléfono" required>
                 <input type="text" id="newPoliceInput" placeholder="Policías" required>
                 <input type="text" id="newIncidenceInput" placeholder="Incidencias" required>
-                <button type="submit" id="saveBtn">Guardar</button>
+                <button type="submit" id="saveBtn">Guardar en Firebase</button>
             </form>
             <div id="statusMessage"></div>
         </div>
@@ -733,8 +733,11 @@
                 const result = await response.json();
                 const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo generar una respuesta.";
                 
-                // Mostrar la respuesta
-                geminiResponseContainer.textContent = text;
+                // Procesar el texto para convertir el formato Markdown de negrita a HTML
+                const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                // Mostrar la respuesta con formato
+                geminiResponseContainer.innerHTML = formattedText;
                 
             } catch (error) {
                 console.error("Error al llamar a la API de Gemini: ", error);
