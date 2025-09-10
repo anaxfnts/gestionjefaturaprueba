@@ -7,6 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <link rel="icon" href="https://raw.githubusercontent.com/anaxfnts/Icono/refs/heads/main/police-badge_3497778.ico" type="image/x-icon">
     <style>
         :root {
@@ -390,7 +391,7 @@
                 <input type="text" id="newPhoneInput" placeholder="Teléfono" required>
                 <input type="text" id="newPoliceInput" placeholder="Policías" required>
                 <input type="text" id="newIncidenceInput" placeholder="Incidencias" required>
-                <button type="submit" id="saveBtn">Guardar en Firebase</button>
+                <button type="submit" id="saveBtn">Guardar</button>
             </form>
             <div id="statusMessage"></div>
         </div>
@@ -426,6 +427,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        const storage = firebase.storage();
 
         // Clave de API de Gemini
         const apiKey = "AIzaSyByjE9035-hD0KyizFa4x_8knCKs7HKfJM"; 
@@ -629,11 +631,33 @@
             }
         });
 
-        // Evento para el botón de "Subir" (aún sin funcionalidad)
-        uploadBtn.addEventListener('click', () => {
-            // Esta es la lógica para subir el archivo, que aún no está implementada
-            // y que será gestionada en la siguiente iteración.
-            console.log('Se ha hecho clic en el botón de Subir.');
+        // Lógica para subir el archivo a Firebase Storage
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                fileStatusMessage.textContent = 'No hay ningún archivo seleccionado.';
+                return;
+            }
+
+            const storageRef = storage.ref(`partes/${file.name}`);
+            const task = storageRef.put(file);
+
+            task.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    fileStatusMessage.textContent = `Subiendo... ${Math.round(progress)}%`;
+                }, 
+                (error) => {
+                    console.error("Error al subir el archivo: ", error);
+                    fileStatusMessage.textContent = `Error al subir: ${error.message}`;
+                    uploadBtn.disabled = true;
+                }, 
+                () => {
+                    fileStatusMessage.textContent = 'Archivo subido con éxito!';
+                    uploadBtn.disabled = true;
+                    // Aquí es donde en el futuro podríamos llamar a la API de Gemini para procesar el archivo
+                }
+            );
         });
 
         window.addEventListener('click', (event) => {
