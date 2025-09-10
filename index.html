@@ -77,7 +77,7 @@
             display: flex;
         }
 
-        input[type="text"], input[type="password"], input[type="date"] {
+        input[type="text"], input[type="password"], input[type="date"], input[type="time"] {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
@@ -87,7 +87,7 @@
             transition: border-color 0.3s;
         }
 
-        input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, input[type="time"]:focus {
             outline: none;
             border-color: var(--primary-color);
         }
@@ -130,6 +130,15 @@
             border-radius: 25px;
             margin-top: 0;
         }
+        
+        #addBtn {
+            flex-basis: 50px;
+            padding: 10px;
+            font-size: 24px;
+            line-height: 1;
+            border-radius: 50%;
+            margin-left: auto; /* Mueve el botón al lado derecho */
+        }
 
         @media (max-width: 600px) {
             #search-box {
@@ -140,7 +149,7 @@
                 border-radius: 8px;
                 flex: none; /* Desactiva el crecimiento para que ocupen todo el ancho */
             }
-            #searchBtn {
+            #searchBtn, #addBtn {
                 width: 100%;
                 flex-basis: auto;
                 border-radius: 25px;
@@ -183,14 +192,67 @@
             margin-top: 15px;
             font-weight: bold;
         }
+
+        /* Estilos para el modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
         
-        /* Media Query para hacer la tabla más compacta en móviles */
-        @media (max-width: 600px) {
-            th, td {
-                padding: 6px 4px; /* Reducción de padding */
-                font-size: 0.7em; /* Reducción de tamaño de fuente */
-                white-space: normal;
-            }
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        /* Estilos del formulario dentro del modal */
+        #addForm input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #saveBtn {
+            margin-top: 15px;
+        }
+        
+        #statusMessage {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -214,6 +276,7 @@
             <input type="text" id="agentInput" placeholder="Filtrar por agente">
             <input type="text" id="keywordInput" placeholder="Palabra clave obligatoria">
             <button id="searchBtn">Buscar</button>
+            <button id="addBtn">+</button>
         </div>
         <div class="table-responsive">
             <table>
@@ -229,6 +292,23 @@
                     <tr><td colspan="4" style="text-align:center;">Introduce un término de búsqueda.</td></tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+    
+    <!-- Modal para añadir nuevos registros -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Añadir nuevo registro</h2>
+            <form id="addForm">
+                <input type="date" id="newDateInput" placeholder="Fecha" required>
+                <input type="time" id="newTimeInput" placeholder="Hora" required>
+                <input type="text" id="newPhoneInput" placeholder="Teléfono" required>
+                <input type="text" id="newPoliceInput" placeholder="Policías" required>
+                <input type="text" id="newIncidenceInput" placeholder="Incidencias" required>
+                <button type="submit" id="saveBtn">Guardar en Firebase</button>
+            </form>
+            <div id="statusMessage"></div>
         </div>
     </div>
 
@@ -259,7 +339,19 @@
         const agentInput = document.getElementById('agentInput');
         const keywordInput = document.getElementById('keywordInput');
         const searchBtn = document.getElementById('searchBtn');
+        const addBtn = document.getElementById('addBtn');
         const dataTable = document.getElementById('dataTable');
+        
+        // Elementos del modal
+        const addModal = document.getElementById('addModal');
+        const closeBtn = document.querySelector('.close-btn');
+        const addForm = document.getElementById('addForm');
+        const newDateInput = document.getElementById('newDateInput');
+        const newTimeInput = document.getElementById('newTimeInput');
+        const newPhoneInput = document.getElementById('newPhoneInput');
+        const newPoliceInput = document.getElementById('newPoliceInput');
+        const newIncidenceInput = document.getElementById('newIncidenceInput');
+        const statusMessage = document.getElementById('statusMessage');
 
         function showDataView() {
             loginContainer.classList.remove('active');
@@ -361,6 +453,53 @@
             } catch (error) {
                 console.error("Error al buscar documentos: ", error);
                 dataTable.innerHTML = '<tr><td colspan="4" style="text-align:center;">Error al cargar los datos.</td></tr>';
+            }
+        });
+
+        // Lógica para el modal de añadir registros
+        addBtn.addEventListener('click', () => {
+            addModal.style.display = 'flex';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            addModal.style.display = 'none';
+            addForm.reset();
+            statusMessage.textContent = '';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === addModal) {
+                addModal.style.display = 'none';
+                addForm.reset();
+                statusMessage.textContent = '';
+            }
+        });
+
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Combinar fecha y hora
+            const newDateTime = new Date(`${newDateInput.value}T${newTimeInput.value}`);
+            const newPhone = newPhoneInput.value;
+            const newPolice = newPoliceInput.value;
+            const newIncidence = newIncidenceInput.value;
+            
+            try {
+                await db.collection('DatosGenerales').add({
+                    Fecha: firebase.firestore.Timestamp.fromDate(newDateTime),
+                    Telefono: newPhone,
+                    Policias: newPolice,
+                    Incidencia: newIncidence
+                });
+                
+                statusMessage.style.color = 'green';
+                statusMessage.textContent = '¡Registro guardado con éxito!';
+                addForm.reset(); // Limpiar el formulario
+                
+            } catch (error) {
+                console.error("Error al guardar el documento: ", error);
+                statusMessage.style.color = 'red';
+                statusMessage.textContent = 'Error al guardar el registro. Inténtalo de nuevo.';
             }
         });
     </script>
